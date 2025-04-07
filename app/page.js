@@ -1,17 +1,39 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
   const [formality, setFormality] = useState("Casual");
+  const dropDownRef = useRef(null);
 
   const handleSelection = (formality) => {
     setFormality(formality);
+    closeDropdown();
   };
+
+  const handleClickOutside = (event) => {
+    if (dropDownRef.current && !dropDownRef.current.contains(event.target)) {
+      closeDropdown();
+    }
+  };
+
+  const closeDropdown = () => {
+    if (dropDownRef.current) {
+      // This will close the dropdown by removing the open attribute
+      dropDownRef.current.removeAttribute("open");
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="">
-      <main className="mx-auto min-h-screen max-w-screen-md px-6 py-12 m  d:px-12 md:py-16 lg:py-24">
+      <main className="mx-auto min-h-screen max-w-screen-md px-6 py-12 md:px-12 md:py-16 lg:py-24">
         <div className="flex flex-col items-center min-h-screen">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-6 text-primary">
             Weather Wardrobe
@@ -22,12 +44,12 @@ export default function Home() {
             className="input"
           />
           <div className="flex justify-center">
-            <button className="btn btn-primary m-10" onClick={getLocation}>
+            <button className="btn btn-primary m-10 " onClick={getLocation}>
               Get Outfit
             </button>
-            <div className="m-9">
-              <details className="dropdown">
-                <summary className="btn m-1">{formality}</summary>
+            <div className="m-10">
+              <details className="dropdown" ref={dropDownRef}>
+                <summary id="formalityDropdown" className="btn w-20">{formality}</summary>
                 <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
                   <li>
                     <a onClick={() => handleSelection("Casual")}>Casual</a>
@@ -86,6 +108,7 @@ function displayResults(weatherData) {
   domElement.innerHTML = `Weather: ${weatherData.weather[0].main}`;
   domElement.innerHTML += `<br>Feels Like Temperature: ${weatherData.main.feels_like}°F`;
   domElement.innerHTML += `<br>Wind: ${weatherData.wind.speed} mph`;
+  domElement.innerHTML += `<br>Formality: ${document.getElementById("formalityDropdown").innerHTML}`;
 }
 
 function success(position) {
