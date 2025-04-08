@@ -3,33 +3,11 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
-  const [formality, setFormality] = useState("Casual");
-  const dropDownRef = useRef(null);
+  const [formality, setFormality] = useState(3);
 
-  const handleSelection = (formality) => {
-    setFormality(formality);
-    closeDropdown();
+  const handleFormalityChange = (e) => {
+    setFormality(e.target.value);
   };
-
-  const handleClickOutside = (event) => {
-    if (dropDownRef.current && !dropDownRef.current.contains(event.target)) {
-      closeDropdown();
-    }
-  };
-
-  const closeDropdown = () => {
-    if (dropDownRef.current) {
-      // This will close the dropdown by removing the open attribute
-      dropDownRef.current.removeAttribute("open");
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   return (
     <div className="">
@@ -38,35 +16,49 @@ export default function Home() {
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-6 text-primary">
             Weather Wardrobe
           </h1>
-          <input
-            type="text"
-            placeholder="Where are you located? "
-            className="input"
-          />
-          <div className="flex justify-center">
-            <button className="btn btn-primary m-10 " onClick={getLocation}>
-              Get Outfit
-            </button>
-            <div className="m-10">
-              <details className="dropdown" ref={dropDownRef}>
-                <summary id="formalityDropdown" className="btn w-20">{formality}</summary>
-                <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                  <li>
-                    <a onClick={() => handleSelection("Casual")}>Casual</a>
-                  </li>
-                  <li>
-                    <a onClick={() => handleSelection("Daily")}>Daily</a>
-                  </li>
-                  <li>
-                    <a onClick={() => handleSelection("Smart")}>Smart</a>
-                  </li>
-                </ul>
-              </details>
+          <div className="flex flex-col items-center ">
+            <div className="w-full ">
+              <input
+                type="text"
+                placeholder="Where are you located? "
+                className="input mt-2"
+              />
+              <input
+                type="range"
+                id="formality"
+                min={1}
+                max={5}
+                value={formality}
+                onChange={handleFormalityChange}
+                className="range range-sm md:range-md range-primary mt-8 "
+                step={1}
+              />
+              <div className="flex justify-between px-2 mt-3 text-sm">
+                <span>Casual</span>
+                <span>Daily</span>
+                <span>Smart</span>
+              </div>
+            </div>{" "}
+          </div>
+
+          <button className="btn btn-primary m-10 " onClick={getLocation}>
+            Get Outfit
+          </button>
+          <div id="display" className="stats stats-primary shadow hidden">
+            <div className="stat">
+              <div className="stat-figure text-secondary">
+                <img
+                  id="weatherIcon"
+                  src="https://openweathermap.org/img/wn/10d@2x.png"
+                  alt="Weather"
+                  width={50}
+                  height={50}
+                />
+                </div>
+              <div id="description" className="stat-value"></div>
+              <div id="temp" className="stat-desc"></div>
             </div>
           </div>
-          <p id="data" className="m-10">
-            No data currently
-          </p>
         </div>
       </main>
       <footer className=""></footer>
@@ -81,7 +73,7 @@ function getLocation() {
     document.getElementById("data").innerHTML =
       "Geolocation is not supported by this browser.";
   }
-} 
+}
 
 async function getWeatherByLocation(lat, lon) {
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
@@ -104,11 +96,14 @@ async function getWeatherByLocation(lat, lon) {
 }
 
 function displayResults(weatherData) {
-  const domElement = document.getElementById("data");
-  domElement.innerHTML = `Weather: ${weatherData.weather[0].main}`;
-  domElement.innerHTML += `<br>Feels Like Temperature: ${weatherData.main.feels_like}°F`;
-  domElement.innerHTML += `<br>Wind: ${weatherData.wind.speed} mph`;
-  domElement.innerHTML += `<br>Formality: ${document.getElementById("formalityDropdown").innerHTML}`;
+  document.getElementById("display").classList.remove("hidden");
+  const tempElement = document.getElementById("temp");
+  const descriptionElement = document.getElementById("description");
+  const iconElement = document.getElementById("weatherIcon");
+  tempElement.innerHTML = `${weatherData.main.temp} °F`;
+  descriptionElement.innerHTML = `${weatherData.weather[0].main}`;
+  iconElement.src = `https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`
+
 }
 
 function success(position) {
